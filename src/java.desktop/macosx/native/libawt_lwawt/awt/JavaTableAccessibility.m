@@ -11,10 +11,6 @@
 #import "JavaCellAccessibility.h"
 #import "ThreadUtilities.h"
 
-static JNF_CLASS_CACHE(sjc_CAccessible, "sun/lwawt/macosx/CAccessible");
-static JNF_MEMBER_CACHE(jf_ptr, sjc_CAccessible, "ptr", "J");
-static JNF_STATIC_MEMBER_CACHE(jm_getAccessibleContext, sjc_CAccessible, "getActiveDescendant", "(Ljavax/accessibility/Accessible;)Ljavax/accessibility/AccessibleContext;");
-
 @implementation JavaTableAccessibility
 
 - (NSString *)getPlatformAxElementClassName {
@@ -37,18 +33,7 @@ static JNF_STATIC_MEMBER_CACHE(jm_getAccessibleContext, sjc_CAccessible, "getAct
      y = [cell accessibilityFrame].origin.y;
      }
      }
-    JNIEnv *env = [ThreadUtilities getJNIEnv];
-    jclass class = (*env)->GetObjectClass(env, [[self javaBase] accessible]);
-    if (class == NULL) {
-        printf("Класс не найден\n");
-    } else {
-        printf("Класс найден\n");
-        NSString *a11yClassname = JNFObjectClassName(env, [[self javaBase] accessible]);
-        printf("JNF класс %s\n", [a11yClassname UTF8String]);
-        jobject ac = JNFCallStaticObjectMethod(env, [[self javaBase] accessible], jm_getAccessibleContext, [[self javaBase] accessible]);
-        NSString *a11yContexClassname = JNFObjectClassName(env, ac);
-        printf("JNF AccessibleContext класс %s\n", [a11yContexClassname UTF8String]);
-    }
+        printf("Размеры таблицы %d на %d\n", [self accessibleRowCount], [self accessibleColCount]);
     NSMutableArray *rows = [NSMutableArray arrayWithCapacity:rowCount];
     int k = 0, cellCount = [children count] / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -104,6 +89,28 @@ static JNF_STATIC_MEMBER_CACHE(jm_getAccessibleContext, sjc_CAccessible, "getAct
 
 - (id)accessibilityParent {
     return [super accessibilityParent];
+}
+
+- (int)accessibleRowCount {
+    JNIEnv *env = [ThreadUtilities getJNIEnv];
+    jclass clsAJT = (*env)->GetObjectClass(env, [self accessibleContext]);
+    JNFClassInfo clsAJTInfo;
+    clsAJTInfo.name = "javax.swing.JTable$AccessibleJTable";
+    clsAJTInfo.cls = clsAJT;
+    JNF_MEMBER_CACHE(jm_getAccessibleRowCount, clsAJTInfo, "getAccessibleRowCount", "()I");
+    jint javaRowsCount = JNFCallIntMethod(env, [self accessibleContext], jm_getAccessibleRowCount);
+    return (int)javaRowsCount;
+}
+
+- (int)accessibleColCount {
+    JNIEnv *env = [ThreadUtilities getJNIEnv];
+    jclass clsAJT = (*env)->GetObjectClass(env, [self accessibleContext]);
+    JNFClassInfo clsAJTInfo;
+    clsAJTInfo.name = "javax.swing.JTable$AccessibleJTable";
+    clsAJTInfo.cls = clsAJT;
+    JNF_MEMBER_CACHE(jm_getAccessibleColumnCount, clsAJTInfo, "getAccessibleColumnCount", "()I");
+    jint javaColsCount = JNFCallIntMethod(env, [self accessibleContext], jm_getAccessibleColumnCount);
+    return (int)javaColsCount;
 }
 
 @end

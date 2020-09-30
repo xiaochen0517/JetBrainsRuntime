@@ -6,6 +6,9 @@
 
 static JNF_STATIC_MEMBER_CACHE(sjm_getAccessibleName, sjc_CAccessibility, "getAccessibleName", "(Ljavax/accessibility/Accessible;Ljava/awt/Component;)Ljava/lang/String;");
 
+static JNF_CLASS_CACHE(sjc_CAccessible, "sun/lwawt/macosx/CAccessible");
+static JNF_MEMBER_CACHE(jm_getAccessibleContext, sjc_CAccessible, "getAccessibleContext", "()Ljavax/accessibility/AccessibleContext;");
+
 static void RaiseMustOverrideException(NSString *method)
 {
     @throw [NSException exceptionWithName:NSInternalInconsistencyException
@@ -104,5 +107,13 @@ static void RaiseMustOverrideException(NSString *method)
 - (void)setAccessibilityParent:(id)accessibilityParent {
     [[self javaBase] setParent:accessibilityParent];
 }
+
+- (jobject)accessibleContext {
+    JNIEnv *env = [ThreadUtilities getJNIEnv];
+    jclass class = (*env)->GetObjectClass(env, [[self javaBase] accessible]);
+        return JNFCallObjectMethod(env, [[self javaBase] accessible], jm_getAccessibleContext);
+}
+
+
 
 @end

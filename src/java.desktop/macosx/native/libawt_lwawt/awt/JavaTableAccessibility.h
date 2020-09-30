@@ -6,4 +6,8 @@
 @end
 
 @interface PlatformAxTable : PlatformAxElement <NSAccessibilityTable>
+
+@property(readonly) int accessibleRowCount;
+@property(readonly) int accessibleColCount;
+
 @end

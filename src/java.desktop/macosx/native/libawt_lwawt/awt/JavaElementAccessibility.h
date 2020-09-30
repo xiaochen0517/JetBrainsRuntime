@@ -20,4 +20,6 @@
 - (id)getAccessibilityWindow;
 // end of NSAccessibility protocol methods
 
+@property(readonly) jobject accessibleContext;
+
 @end
