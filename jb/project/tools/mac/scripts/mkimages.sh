@@ -85,7 +85,7 @@ RELEASE_NAME=macosx-x86_64-server-release
 JBSDK=${JBRSDK_BASE_NAME}-osx-x64-b${build_number}
 case "$bundle_type" in
   "jcef")
-    git apply -p0 < jb/project/tools/patches/add_jcef_module.patch
+    git apply -p0 < jb/project/tools/patches/add_jcef_module.patch || do_exit $?
     do_reset_changes=1
     ;;
   "nomod" | "")
@@ -93,7 +93,7 @@ case "$bundle_type" in
     WITH_IMPORT_MODULES=""
     ;;
   "fd")
-    git apply -p0 < jb/project/tools/patches/add_jcef_module.patch
+    git apply -p0 < jb/project/tools/patches/add_jcef_module.patch || do_exit $?
     do_reset_changes=1
     WITH_DEBUG_LEVEL="--with-debug-level=fastdebug"
     RELEASE_NAME=macosx-x86_64-server-fastdebug
@@ -114,7 +114,7 @@ sh configure \
   --with-boot-jdk=`/usr/libexec/java_home -v 14` \
   --enable-cds=yes || do_exit $?
 
-make clean CONF=$RELEASE_NAME || exit $?
+make clean CONF=$RELEASE_NAME || do_exit $?
 make images CONF=$RELEASE_NAME || do_exit $?
 
 JSDK=build/$RELEASE_NAME/images/jdk-bundle
