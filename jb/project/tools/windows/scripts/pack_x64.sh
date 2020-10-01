@@ -1,13 +1,13 @@
 #!/bin/bash -x
 
 # The following parameters must be specified:
-#   JBSDK_VERSION    - specifies the current version of OpenJDK e.g. 11_0_6
-#   JDK_BUILD_NUMBER - specifies the number of OpenJDK build or the value of --with-version-build argument to configure
+#   JBSDK_VERSION    - specifies major version of OpenJDK e.g. 11_0_6 (instead of dots '.' underbars "_" are used)
+#   JDK_BUILD_NUMBER - specifies udate release of OpenJDK build or the value of --with-version-build argument to configure
 #   build_number     - specifies the number of JetBrainsRuntime build
-#   bundle_type      - specifies bundle to bu built; possible values:
-#                        jcef - the bundles with jcef
+#   bundle_type      - specifies bundle to be built; possible values:
 #                        <empty> or nomod - the bundles without any additional modules (jcef)
-#                        fd - the fastdebug bundles with jcef
+#                        jcef - the bundles with jcef
+#                        fd - the fastdebug bundles which also include the jcef module
 #
 # jbrsdk-${JBSDK_VERSION}-osx-x64-b${build_number}.tar.gz
 # jbr-${JBSDK_VERSION}-osx-x64-b${build_number}.tar.gz
@@ -23,19 +23,13 @@ JDK_BUILD_NUMBER=$2
 build_number=$3
 bundle_type=$4
 
-function do_exit() {
-  exit_code=$1
-  [ $do_reset_changes -eq 1 ] && git checkout HEAD modules.list src/java.desktop/share/classes/module-info.java
-  exit $exit_code
-}
-
-function create_jbr {
+function pack_jbr {
 
   if [ -z "${bundle_type}" ]; then
     JBR_BUNDLE=jbr
   else
     JBR_BUNDLE=jbr_${bundle_type}
-    rm -rf ${BASE_DIR}/jbr
+    [ -d ${BASE_DIR}/jbr ] && rm -rf ${BASE_DIR}/jbr
     cp -R ${BASE_DIR}/${JBR_BUNDLE} ${BASE_DIR}/jbr
   fi
   JBR_BASE_NAME=${JBR_BUNDLE}-${JBSDK_VERSION}

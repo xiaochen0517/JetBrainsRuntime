@@ -1,13 +1,13 @@
 #!/bin/bash -x
 
 # The following parameters must be specified:
-#   JBSDK_VERSION    - specifies the current version of OpenJDK e.g. 11_0_6
-#   JDK_BUILD_NUMBER - specifies the number of OpenJDK build or the value of --with-version-build argument to configure
+#   JBSDK_VERSION    - specifies major version of OpenJDK e.g. 11_0_6 (instead of dots '.' underbars "_" are used)
+#   JDK_BUILD_NUMBER - specifies udate release of OpenJDK build or the value of --with-version-build argument to configure
 #   build_number     - specifies the number of JetBrainsRuntime build
-#   bundle_type      - specifies bundle to bu built; possible values:
-#                        jcef - the bundles with jcef
+#   bundle_type      - specifies bundle to be built; possible values:
 #                        <empty> or nomod - the bundles without any additional modules (jcef)
-#                        fd - the fastdebug bundles with jcef
+#                        jcef - the bundles with jcef
+#                        fd - the fastdebug bundles which also include the jcef module
 #
 # jbrsdk-${JBSDK_VERSION}-osx-x64-b${build_number}.tar.gz
 # jbr-${JBSDK_VERSION}-osx-x64-b${build_number}.tar.gz
@@ -31,15 +31,8 @@ JBSDK_VERSION_WITH_DOTS=$(echo $JBSDK_VERSION | sed 's/_/\./g')
 WORK_DIR=$(pwd)
 WITH_IMPORT_MODULES="--with-import-modules=${MODULAR_SDK_PATH:=$WORK_DIR/modular-sdk}"
 JCEF_PATH=${JCEF_PATH:=$WORK_DIR/jcef_win_x64}
-do_reset_changes=0
 
 source jb/project/tools/common.sh
-
-function do_exit() {
-  exit_code=$1
-  [ $do_reset_changes -eq 1 ] && git checkout HEAD modules.list src/java.desktop/share/classes/module-info.java
-  exit $exit_code
-}
 
 function create_jbr {
 
@@ -100,12 +93,12 @@ sh ./configure \
   --enable-cds=yes || do_exit $?
 
 if [ "$bundle_type" == "jcef" ]; then
-  make LOG=info CONF=$RELEASE_NAME images  || do_exit $?
+  make LOG=info CONF=$RELEASE_NAME images test-image   || do_exit $?
 else
   make LOG=info CONF=$RELEASE_NAME images || do_exit $?
 fi
 
-JSDK=build/$RELEASE_NAME/images/jdk-bundle
+JSDK=build/$RELEASE_NAME/images/jdk
 
 BASE_DIR=build/$RELEASE_NAME/images
 JBRSDK_BUNDLE=jbrsdk
@@ -118,3 +111,5 @@ if [ "$bundle_type" == "jcef" ] || [ "$bundle_type" == "fd" ]; then
 fi
 
 create_jbr || exit $?
+
+do_exit 0
